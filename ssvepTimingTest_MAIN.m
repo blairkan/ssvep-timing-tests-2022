@@ -1,13 +1,10 @@
-% ssvepTimingTest.m
+% ssvepTimingTest_MAIN.m
 % ---------------------
 % Creator: Blair Kaneshiro (October 2022)
 % Maintainer: Blair Kaneshiro
 %
 % This script loads a timing test .mat file exported from Net Station and
 % assesses the timing between photodiode events.
-%
-% Dependencies:
-% - Required repo: https://github.com/blairkan/BKanMatEEGToolbox
 
 %%
 clear all; close all; clc
