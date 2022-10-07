@@ -81,7 +81,7 @@ disp(' ')
 nBlocks = length(TIMESTAMPS);
 close all
 
-for i = 1%:nBlocks
+for i = 1:nBlocks
     
    disp([newline 'Assessing timing in block ' num2str(i)])
    currData = TIMESTAMPS{i}; 
@@ -115,5 +115,9 @@ for i = 1%:nBlocks
    plot(xlim, 1000 * 1/currBlockHz * [1 1], 'r', 'linewidth', 2)
    legend('observed', 'expected', 'location', 'best')
    
-%    clear curr*
+   currFnOut = [fnIn(1:(end-4)) '_block' sprintf('%02d', i) '.png'];
+   saveas(gcf, currFnOut)
+   close
+   
+   clear curr*
 end
