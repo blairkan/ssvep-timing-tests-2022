@@ -10,19 +10,30 @@
 clear all; close all; clc
 
 % Some .mat file in path
-fnIn = 'MatlabTest1_20221003_123355.mat';
+% fnIn = 'MatlabtestNopreload1_20221010_113412.mat';
+fnIn = 'MatlabtestPreload1_20221010_114133.mat';
+
+% Trial length in seconds (determines number of expected events)
+trialSec = 12;
 
 IN = load(fnIn)
 %   struct with fields:
-% 
+%
 %     MatlabTest1_20221003_123355mff: [129×305352 single]
 %                    EEGSamplingRate: 1000
 %                           evt_DIN2: {4×1837 cell}
 %                evt_ECI_TCPIP_55513: {4×30 cell}
 
 % Extract photodiode events from DIN channel
-[dinTriggers, dinOnsets] = parseDIN_col(IN.evt_DIN2);
-assert(isequal(unique(dinTriggers), 2));
+try
+    [dinTriggers, dinOnsets] = parseDIN_col(IN.evt_DIN1);
+    assert(isequal(unique(dinTriggers), 1));
+    disp('Parsed DIN1 triggers.')
+catch
+    [dinTriggers, dinOnsets] = parseDIN_col(IN.evt_DIN2);
+    assert(isequal(unique(dinTriggers), 2));
+    disp('Parsed DIN2 triggers.')
+end
 dinTriggers = 99 * ones(size(dinTriggers)); % Make a non-Hz value
 dinCombined = [dinTriggers dinOnsets];
 
@@ -30,17 +41,14 @@ dinCombined = [dinTriggers dinOnsets];
 [tcpTriggers, tcpOnsets] = parseTCP_xHz(IN.evt_ECI_TCPIP_55513);
 tcpCombined = [tcpTriggers tcpOnsets];
 
-% Trial length in seconds (determines number of expected events)
-trialSec = 10;
-
 %% Aggregate DIN and TCP triggers
 
 % Iterate backward through the labelled triggers and combine each trigger
-% with corresponding subsequent photodiode events. 
+% with corresponding subsequent photodiode events.
 
 % Data will be aggregated in a cell array called TIMESTAMPS. Each element
-% of TIMESTAMPS will be an nEvent x 2 matrix. 
-%   - The first row will contain the trigger and onset time of the 
+% of TIMESTAMPS will be an nEvent x 2 matrix.
+%   - The first row will contain the trigger and onset time of the
 %   labelled stimulus trigger.
 %   - Subsequent rows will contain dummy trigger 99 plus corresponding
 %   timestamps of the DIN (photodiode) events.
@@ -80,41 +88,41 @@ close all
 
 for i = 1:nBlocks
     
-   disp([newline 'Assessing timing in block ' num2str(i)])
-   currData = TIMESTAMPS{i}; 
-   
-   currBlockHz = currData(1, 1);
-   currTimestamps = currData(2:end, 2);
-   currDinTriggers = currData(2:end, 1);
-   assert(isequal(unique(currDinTriggers), 99))
-   currNExpected = currBlockHz * trialSec;
-   currNActual = length(currTimestamps);
-   
-   disp(['Block condition: ' num2str(currBlockHz) 'Hz'])
-   disp(['Expected number of events (' num2str(trialSec) ...
-       '-second trial): ' num2str(currNExpected)])
-   disp(['Actual number of events registered: ' num2str(currNActual)])
-   
-   currDiff = diff(currTimestamps);
-   currMeanDiff = mean(currDiff);
-   currMinDiff = min(currDiff); currMaxDiff = max(currDiff);
-   
-   figure()
-   plot(currDiff, '-*', 'linewidth', 2) 
-   hold on
-   grid on; box off
-   xlabel('Trial number')
-   ylabel('Msec since previous timestamp')
-   title(['Photodiode timestamp diff, block ' num2str(i) ... 
-       ' (' num2str(currBlockHz) ' Hz)'])
-   ylim([currMinDiff - 1, currMaxDiff + 1])
-   set(gca, 'fontsize', 16)
-   plot(xlim, 1000 * 1/currBlockHz * [1 1], 'r', 'linewidth', 2)
-   legend('observed', 'expected', 'location', 'best')
-   
-   currFnOut = [fnIn(1:(end-4)) '_block' sprintf('%02d', i) '.png'];
-   saveas(gcf, currFnOut)
-   close
-   
-   clear curr*
+    disp([newline 'Assessing timing in block ' num2str(i)])
+    currData = TIMESTAMPS{i};
+    
+    currBlockHz = currData(1, 1);
+    currTimestamps = currData(2:end, 2);
+    currDinTriggers = currData(2:end, 1);
+    assert(isequal(unique(currDinTriggers), 99))
+    currNExpected = currBlockHz * trialSec;
+    currNActual = length(currTimestamps);
+    
+    disp(['Block condition: ' num2str(currBlockHz) 'Hz'])
+    disp(['Expected number of events (' num2str(trialSec) ...
+        '-second trial): ' num2str(currNExpected)])
+    disp(['Actual number of events registered: ' num2str(currNActual)])
+    
+    currDiff = diff(currTimestamps);
+    currMeanDiff = mean(currDiff);
+    currMinDiff = min(currDiff); currMaxDiff = max(currDiff);
+    
+    figure()
+    plot(currDiff, '-*', 'linewidth', 2)
+    hold on
+    grid on; box off
+    xlabel('Trial number')
+    ylabel('Msec since previous timestamp')
+    title(['Photodiode timestamp diff, block ' num2str(i) ...
+        ' (' num2str(currBlockHz) ' Hz)'])
+    ylim([currMinDiff - 1, currMaxDiff + 1])
+    set(gca, 'fontsize', 16)
+    plot(xlim, 1000 * 1/currBlockHz * [1 1], 'r', 'linewidth', 2)
+    legend('observed', 'expected', 'location', 'best')
+    
+    currFnOut = [fnIn(1:(end-4)) '_block' sprintf('%02d', i) '.png'];
+%     saveas(gcf, currFnOut)
+    pause()
+    
+    clear curr*
 end
