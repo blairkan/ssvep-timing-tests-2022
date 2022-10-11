@@ -9,12 +9,17 @@
 %%
 clear all; close all; clc
 
+%%%%%%%%%%%%%%%%%%%%%%% Edit things here %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Some .mat file in path
 % fnIn = 'MatlabtestNopreload1_20221010_113412.mat';
 fnIn = 'MatlabtestPreload1_20221010_114133.mat';
 
 % Trial length in seconds (determines number of expected events)
 trialSec = 12;
+
+% Whether to save figures
+saveFig = 1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 IN = load(fnIn)
 %   struct with fields:
@@ -120,9 +125,8 @@ for i = 1:nBlocks
     plot(xlim, 1000 * 1/currBlockHz * [1 1], 'r', 'linewidth', 2)
     legend('observed', 'expected', 'location', 'best')
     
-    currFnOut = [fnIn(1:(end-4)) '_block' sprintf('%02d', i) '.png'];
-%     saveas(gcf, currFnOut)
-    pause()
+    currFnOut = ['PNG' filesep fnIn(1:(end-4)) '_block' sprintf('%02d', i) '.png'];
+    if saveFig, saveas(gcf, currFnOut); else, pause(); end
     
     clear curr*
 end
