@@ -19,6 +19,9 @@ trialSec = 12;
 
 % Whether to save figures
 saveFig = 1;
+
+% Whether to trim excess photodiode events
+trimExcess = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 IN = load(fnIn)
@@ -107,6 +110,13 @@ for i = 1:nBlocks
     disp(['Expected number of events (' num2str(trialSec) ...
         '-second trial): ' num2str(currNExpected)])
     disp(['Actual number of events registered: ' num2str(currNActual)])
+    
+    if trimExcess
+       if currNActual > currNExpected
+          currTimestamps = currTimestamps(1:currNExpected);
+          disp('Discarded excess timestamps from end!')
+       end
+    end
     
     currDiff = diff(currTimestamps);
     currMeanDiff = mean(currDiff);
